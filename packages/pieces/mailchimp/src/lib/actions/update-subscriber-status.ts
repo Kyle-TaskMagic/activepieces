@@ -3,22 +3,12 @@ import mailchimp from '@mailchimp/mailchimp_marketing';
 import { createAction, Property } from '@activepieces/pieces-framework';
 import { mailchimpAuth } from '../..';
 
-export const addMemberToList = createAction({
+export const updateSubscriberInList = createAction({
   auth: mailchimpAuth,
-  name: 'add_member_to_list',
-  displayName: 'Add Member to an Audience (List)',
-  description: 'Add a member to an existing Mailchimp audience (list)',
+  name: 'update_member_in_list',
+  displayName: 'Update Member in an Audience (List)',
+  description: 'Update a member in an existing Mailchimp audience (list)',
   props: {
-    first_name: Property.ShortText({
-      displayName: 'First Name',
-      description: 'First name of the new contact',
-      required: false,
-    }),
-    last_name: Property.ShortText({
-      displayName: 'Last Name',
-      description: 'Last name of the new contact',
-      required: false,
-    }),
     email: Property.ShortText({
       displayName: 'Email',
       description: 'Email of the new contact',
@@ -50,13 +40,12 @@ export const addMemberToList = createAction({
       accessToken: access_token,
       server: mailChimpServerPrefix,
     });
-    return await mailchimp.lists.addListMember(context.propsValue.list_id!, {
-      email_address: context.propsValue.email!,
-      status: context.propsValue.status!,
-      merge_fields: {
-        FNAME: context.propsValue.first_name || '',
-        LNAME: context.propsValue.last_name || '',
-      },
-    });
+    return await mailchimp.lists.updateListMember(
+      context.propsValue.list_id!,
+      context.propsValue.email!,
+      {
+        status: context.propsValue.status!,
+      }
+    );
   },
 });
