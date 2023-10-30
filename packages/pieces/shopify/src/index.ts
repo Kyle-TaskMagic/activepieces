@@ -14,13 +14,13 @@ To Obtain an Admin Token, follow these steps:
 3. Click on Develop apps
 4. Create an App
 5. Fill the app name
-6. Click on Configure Admin API Scopes (Select the following scopes 'read_orders', 'read_customers')
+6. Click on Configure Admin API Scopes (Select the following scopes 'read_orders', 'read_customers') Note: Some steps may require more sensitive scopes
 7. Click on Install app
 8. Copy the Admin Access Token
 
 **Shop Name**
 1- You can find your shop name in the url For example, if the URL is https://example.myshopify.com/admin, then your shop name is **example**.
-`
+`;
 
 export const shopifyAuth = PieceAuth.CustomAuth({
   description: markdown,
