@@ -1,6 +1,11 @@
-import Airtable from "airtable";
-import { Property, DynamicPropsValue } from "@activepieces/pieces-framework";
-import { HttpMethod, AuthenticationType, httpClient, HttpRequest } from "@activepieces/pieces-common";
+import Airtable from 'airtable';
+import { Property, DynamicPropsValue } from '@activepieces/pieces-framework';
+import {
+  HttpMethod,
+  AuthenticationType,
+  httpClient,
+  HttpRequest,
+} from '@activepieces/pieces-common';
 import {
   AirtableBase,
   AirtableEnterpriseFields,
@@ -8,9 +13,9 @@ import {
   AirtableFieldMapping,
   AirtableRecord,
   AirtableTable,
-  AirtableView,
+  AirtableFieldType,
 } from './models';
-import { isNil } from "lodash";
+import { isNil } from 'lodash';
 
 export const airtableCommon = {
   base: Property.Dropdown({
@@ -113,73 +118,6 @@ export const airtableCommon = {
     },
   }),
 
-  views: Property.Dropdown<string>({
-    displayName: 'View',
-    required: false,
-    refreshers: ['base', 'tableId'],
-    options: async ({ auth, base, tableId }) => {
-      if (!auth) {
-        return {
-          disabled: true,
-          options: [],
-          placeholder: 'Please connect your account',
-        };
-      }
-      if (!base) {
-        return {
-          disabled: true,
-          options: [],
-          placeholder: 'Please select a base first',
-        };
-      }
-      if (!tableId) {
-        return {
-          disabled: true,
-          options: [],
-          placeholder: 'Please select a table first',
-        };
-      }
-
-      try {
-        const views: AirtableView[] = await airtableCommon.fetchViews({
-          token: auth as string,
-          baseId: base as string,
-          tableId: tableId as string,
-        });
-
-        if (views) {
-          return {
-            disabled: false,
-            options: views.map((view) => ({
-              value: view.id,
-              label: view.name,
-            })),
-          };
-        }
-      } catch (e) {
-        console.debug(e);
-
-        return {
-          disabled: true,
-          options: [],
-          placeholder: 'Please check your permission scope',
-        };
-      }
-
-      return {
-        disabled: true,
-        options: [],
-      };
-    },
-  }),
-
-  recordId: Property.ShortText({
-    displayName: 'Record ID',
-    required: true,
-    description:
-      'The ID of the record you want to update. You can find the record ID by clicking on the record and then clicking on the share button. The ID will be in the URL.',
-  }),
-
   fields: Property.DynamicProperties({
     displayName: 'Table',
     required: true,
@@ -245,34 +183,6 @@ export const airtableCommon = {
     },
   }),
 
-  fieldNames: Property.DynamicProperties({
-    displayName: 'Table',
-    required: true,
-    refreshers: ['base', 'tableId'],
-
-    props: async ({ auth, base, tableId }) => {
-      if (!auth) return {};
-      if (!base) return {};
-      if (!tableId) return {};
-
-      let fieldNames = {};
-
-      try {
-        const airtable: AirtableTable = await airtableCommon.fetchTable({
-          token: auth as unknown as string,
-          baseId: base as unknown as string,
-          tableId: tableId as unknown as string,
-        });
-
-        fieldNames = airtable.fields.map((field: AirtableField) => field.name);
-      } catch (e) {
-        console.debug(e);
-      }
-
-      return fieldNames;
-    },
-  }),
-
   async createNewFields(
     auth: string,
     base: string,
@@ -311,7 +221,6 @@ export const airtableCommon = {
     }
     return newFields;
   },
-
   async getTableSnapshot(params: Params) {
     Airtable.configure({
       apiKey: params.personalToken,
@@ -364,31 +273,6 @@ export const airtableCommon = {
     return response.find((t) => t.id === tableId)!;
   },
 
-  async fetchViews({
-    token,
-    baseId,
-    tableId,
-  }: {
-    token: string;
-    baseId: string;
-    tableId: string;
-  }) {
-    const response = await httpClient.sendRequest<{ views: AirtableView[] }>({
-      method: HttpMethod.GET,
-      url: `https://api.airtable.com/v0/${baseId}/${tableId}/views`,
-      authentication: {
-        type: AuthenticationType.BEARER_TOKEN,
-        token,
-      },
-    });
-
-    if (response.status === 200) {
-      return response.body.views;
-    }
-
-    return [];
-  },
-
   async createRecord({
     personalToken: token,
     fields,
@@ -415,89 +299,6 @@ export const airtableCommon = {
 
     return response;
   },
-
-  async findRecord({
-    personalToken: token,
-    searchField,
-    searchValue,
-    tableId,
-    baseId,
-    limitToView,
-  }: Params) {
-    const request: HttpRequest = {
-      method: HttpMethod.GET,
-      url: `https://api.airtable.com/v0/${baseId}/${tableId}`,
-      authentication: {
-        type: AuthenticationType.BEARER_TOKEN,
-        token,
-      },
-      queryParams: {
-        filterByFormula: `FIND("${searchValue}",{${searchField}})`,
-        view: limitToView ?? '',
-      },
-    };
-
-    const response = await httpClient.sendRequest<{
-      records: AirtableRecord[];
-    }>(request);
-
-    if (response.status === 200) {
-      return response.body.records;
-    }
-
-    return [];
-  },
-  async updateRecord({
-    personalToken: token,
-    fields,
-    recordId,
-    tableId,
-    baseId,
-  }: Params) {
-    const request: HttpRequest = {
-      method: HttpMethod.PATCH,
-      url: `https://api.airtable.com/v0/${baseId}/${tableId}/${recordId}`,
-      authentication: {
-        type: AuthenticationType.BEARER_TOKEN,
-        token,
-      },
-      body: {
-        fields,
-      },
-    };
-
-    const response = await httpClient.sendRequest<AirtableRecord>(request);
-
-    if (response.status === 200) {
-      return response.body;
-    }
-
-    return response;
-  },
-
-  async deleteRecord({
-    personalToken: token,
-    recordId,
-    tableId,
-    baseId,
-  }: Params) {
-    const request: HttpRequest = {
-      method: HttpMethod.DELETE,
-      url: `https://api.airtable.com/v0/${baseId}/${tableId}/${recordId}`,
-      authentication: {
-        type: AuthenticationType.BEARER_TOKEN,
-        token,
-      },
-    };
-
-    const response = await httpClient.sendRequest<AirtableRecord>(request);
-
-    if (response.status === 200) {
-      return response.body;
-    }
-
-    return response;
-  },
 };
 
 interface Params {
@@ -505,9 +306,4 @@ interface Params {
   baseId: string;
   tableId: string;
   fields?: Record<string, unknown>;
-  recordId?: string;
-  searchValue?: string;
-  searchField?: string;
-  fieldNames?: string[];
-  limitToView?: string;
 }
