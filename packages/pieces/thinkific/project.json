@@ -1,0 +1,44 @@
+{
+  "name": "pieces-thinkific",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "packages/pieces/thinkific/src",
+  "projectType": "library",
+  "targets": {
+    "build": {
+      "executor": "@nx/js:tsc",
+      "outputs": [
+        "{options.outputPath}"
+      ],
+      "options": {
+        "outputPath": "dist/packages/pieces/thinkific",
+        "tsConfig": "packages/pieces/thinkific/tsconfig.lib.json",
+        "packageJson": "packages/pieces/thinkific/package.json",
+        "main": "packages/pieces/thinkific/src/index.ts",
+        "assets": [
+          "packages/pieces/thinkific/*.md"
+        ],
+        "buildableProjectDepsInPackageJsonType": "dependencies",
+        "updateBuildableProjectDepsInPackageJson": true
+      }
+    },
+    "publish": {
+      "command": "node tools/scripts/publish.mjs pieces-thinkific {args.ver} {args.tag}",
+      "dependsOn": [
+        "build"
+      ]
+    },
+    "lint": {
+      "executor": "@nx/linter:eslint",
+      "outputs": [
+        "{options.outputFile}"
+      ],
+      "options": {
+        "lintFilePatterns": [
+          "packages/pieces/thinkific/**/*.ts",
+          "packages/pieces/thinkific/package.json"
+        ]
+      }
+    }
+  },
+  "tags": []
+}
