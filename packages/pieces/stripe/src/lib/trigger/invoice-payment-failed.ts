@@ -1,29 +1,32 @@
 import { createTrigger } from '@activepieces/pieces-framework';
-import { TriggerStrategy } from "@activepieces/pieces-framework";
+import { TriggerStrategy } from '@activepieces/pieces-framework';
 import { stripeCommon } from '../common';
 import { stripeAuth } from '../..';
 
-export const stripeNewCustomer = createTrigger({
+export const stripeInvoicePaymentFailed = createTrigger({
   auth: stripeAuth,
-  name: 'new_customer',
-  displayName: 'New Customer',
-  description: 'Triggers when a new customer is created',
+  name: 'invoice_payment_failed',
+  displayName: 'Invoice Payment Failed',
+  description: 'Triggers when an invoice payment fails',
   props: {},
-  sampleData: stripeCommon.samples.customer,
+  sampleData: stripeCommon.samples.event,
   type: TriggerStrategy.WEBHOOK,
   async onEnable(context) {
     const webhook = await stripeCommon.subscribeWebhook(
-      'customer.created',
+      'invoice.payment_failed',
       context.webhookUrl,
       context.auth
     );
-    await context.store.put<WebhookInformation>('_new_customer_trigger', {
-      webhookId: webhook.id,
-    });
+    await context.store?.put<WebhookInformation>(
+      '_invoice_payment_failed_trigger',
+      {
+        webhookId: webhook.id,
+      }
+    );
   },
   async onDisable(context) {
     const response = await context.store?.get<WebhookInformation>(
-      '_new_customer_trigger'
+      '_invoice_payment_failed_trigger'
     );
     if (response !== null && response !== undefined) {
       await stripeCommon.unsubscribeWebhook(response.webhookId, context.auth);
