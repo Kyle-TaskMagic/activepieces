@@ -146,4 +146,10 @@ export const notionCommon = {
       return fields;
     },
   }),
+  parent_pages: Property.Dropdown({
+    displayName: 'Parent Page',
+    description: 'Select the parent page',
+    required: false,
+    refreshers: ['database_id'],
+  }),
 };
