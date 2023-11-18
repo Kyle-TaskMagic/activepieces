@@ -1,0 +1,44 @@
+{
+  "name": "pieces-gumroad",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "packages/pieces/gumroad/src",
+  "projectType": "library",
+  "targets": {
+    "build": {
+      "executor": "@nx/js:tsc",
+      "outputs": [
+        "{options.outputPath}"
+      ],
+      "options": {
+        "outputPath": "dist/packages/pieces/gumroad",
+        "tsConfig": "packages/pieces/gumroad/tsconfig.lib.json",
+        "packageJson": "packages/pieces/gumroad/package.json",
+        "main": "packages/pieces/gumroad/src/index.ts",
+        "assets": [
+          "packages/pieces/gumroad/*.md"
+        ],
+        "buildableProjectDepsInPackageJsonType": "dependencies",
+        "updateBuildableProjectDepsInPackageJson": true
+      }
+    },
+    "publish": {
+      "command": "node tools/scripts/publish.mjs pieces-gumroad {args.ver} {args.tag}",
+      "dependsOn": [
+        "build"
+      ]
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint",
+      "outputs": [
+        "{options.outputFile}"
+      ],
+      "options": {
+        "lintFilePatterns": [
+          "packages/pieces/gumroad/**/*.ts",
+          "packages/pieces/gumroad/package.json"
+        ]
+      }
+    }
+  },
+  "tags": []
+}

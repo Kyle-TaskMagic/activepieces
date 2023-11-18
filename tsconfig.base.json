@@ -115,6 +115,7 @@
       "@activepieces/piece-gravityforms": [
         "packages/pieces/gravityforms/src/index.ts"
       ],
+      "@activepieces/piece-gumroad": ["packages/pieces/gumroad/src/index.ts"],
       "@activepieces/piece-hackernews": [
         "packages/pieces/hackernews/src/index.ts"
       ],
